@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+body {
+  @apply bg-[#0A0A0A] text-zinc-100 antialiased;
+  margin: 0;
+}
