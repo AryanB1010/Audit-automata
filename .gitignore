@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Sensitive files
+backend/passkey.py
+.env
+__pycache__/
+
