@@ -1,12 +1,28 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react'; // useRef add kiya
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, X, CheckCircle2 } from 'lucide-react';
+import { Upload, X, CheckCircle2 } from 'lucide-react';
 
 export default function IngestionHero({ onFileAccepted }) {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
+  const fileInputRef = useRef(null); // File window trigger karne ke liye ref
 
-  // Handlers for the Drag & Drop API
+  // Click handler: Jab user box par click kare toh hidden input trigger ho
+  const handleBoxClick = () => {
+    fileInputRef.current.click();
+  };
+
+  // Common file handler: Jo Drag aur Click dono ke liye kaam karega
+  const processFile = (uploadedFile) => {
+    if (uploadedFile && uploadedFile.type === 'application/pdf') {
+      setFile(uploadedFile);
+      // Success state dikhane ke liye delay, phir backend bhejenge
+      setTimeout(() => onFileAccepted(uploadedFile), 1200);
+    } else {
+      alert("Bhai, sirf valid PDF bank statement hi chalegi.");
+    }
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     setIsDragging(true);
@@ -18,14 +34,13 @@ export default function IngestionHero({ onFileAccepted }) {
     e.preventDefault();
     setIsDragging(false);
     const uploadedFile = e.dataTransfer.files[0];
-    if (uploadedFile && uploadedFile.type === 'application/pdf') {
-      setFile(uploadedFile);
-      // Small delay to let the user see the "Success" state before moving to the terminal
-      setTimeout(() => onFileAccepted(uploadedFile), 1200);
-    } else {
-      alert("Please upload a valid PDF bank statement.");
-    }
+    processFile(uploadedFile);
   }, [onFileAccepted]);
+
+  const handleInputChange = (e) => {
+    const uploadedFile = e.target.files[0];
+    processFile(uploadedFile);
+  };
 
   return (
     <section className="relative w-full max-w-4xl mx-auto py-20 px-6">
@@ -47,6 +62,7 @@ export default function IngestionHero({ onFileAccepted }) {
 
       {/* The Main Dropzone */}
       <motion.div
+        onClick={handleBoxClick} // Click functionality add kar di
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -57,6 +73,15 @@ export default function IngestionHero({ onFileAccepted }) {
         }}
         className="relative group cursor-pointer border-2 border-dashed rounded-[2rem] p-16 flex flex-col items-center justify-center transition-all duration-300 backdrop-blur-sm"
       >
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleInputChange} 
+          className="hidden" 
+          accept=".pdf" 
+        />
+
         <AnimatePresence mode="wait">
           {!file ? (
             <motion.div
@@ -89,7 +114,6 @@ export default function IngestionHero({ onFileAccepted }) {
               <p className="text-xl font-medium text-green-400">File Received</p>
               <p className="text-sm text-slate-300 mt-1 font-mono">{file.name}</p>
               
-              {/* Fake Progress Bar to build tension */}
               <div className="w-48 h-1 bg-slate-800 rounded-full mt-6 overflow-hidden">
                 <motion.div 
                   initial={{ x: '-100%' }}
@@ -103,7 +127,7 @@ export default function IngestionHero({ onFileAccepted }) {
         </AnimatePresence>
       </motion.div>
 
-      {/* Trust Badges for the Microsoft Judges */}
+      {/* Trust Badges */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
